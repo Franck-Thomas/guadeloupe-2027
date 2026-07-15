@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         #map { height: 320px; width: 100%; border-radius: 1rem; z-index: 10; }
     </style>
@@ -39,23 +39,80 @@
                 <h2 class="text-lg font-bold text-slate-900 mb-1 flex items-center gap-2">
                     <i data-lucide="wallet" class="text-teal-500 w-5 h-5"></i> Budget Estimé
                 </h2>
-                <p class="text-xs text-slate-400 mb-4">Ajustez le nombre de participants et sélectionnez vos journées.</p>
+                <p class="text-xs text-slate-400 mb-4">Sélectionnez les participants et vos journées.</p>
                 
-                <!-- Sélecteur de personnes -->
-                <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
-                    <span class="text-sm font-medium text-slate-700 flex items-center gap-2">
-                        <i data-lucide="users" class="w-4 h-4 text-slate-400"></i> Nombre de voyageurs :
+                <!-- Sélecteur de personnes (Badges) -->
+                <div class="border-b border-slate-100 pb-4 mb-4">
+                    <span class="text-sm font-medium text-slate-700 flex items-center gap-2 mb-3">
+                        <i data-lucide="users" class="w-4 h-4 text-slate-400"></i> Participants :
                     </span>
-                    <div class="flex items-center gap-3 bg-slate-100 p-1 rounded-lg">
-                        <button onclick="updatePassengers(-1)" class="w-8 h-8 rounded-md bg-white shadow-sm flex items-center justify-center font-bold text-slate-700 hover:bg-slate-50 transition-colors">-</button>
-                        <span id="passenger-count" class="text-sm font-bold w-6 text-center text-slate-800">2</span>
-                        <button onclick="updatePassengers(1)" class="w-8 h-8 rounded-md bg-white shadow-sm flex items-center justify-center font-bold text-slate-700 hover:bg-slate-50 transition-colors">+</button>
+                    <div class="flex flex-wrap gap-2" id="people-list">
+                        <!-- Franck -->
+                        <label class="cursor-pointer">
+                            <input type="checkbox" class="hidden person-cb" data-gender="M" checked onchange="updatePersons()">
+                            <span class="person-badge inline-block px-2.5 py-1 text-xs font-bold rounded-full border transition-colors">Franck</span>
+                        </label>
+                        <!-- Ludivine -->
+                        <label class="cursor-pointer">
+                            <input type="checkbox" class="hidden person-cb" data-gender="F" checked onchange="updatePersons()">
+                            <span class="person-badge inline-block px-2.5 py-1 text-xs font-bold rounded-full border transition-colors">Ludivine</span>
+                        </label>
+                        <!-- Nathan -->
+                        <label class="cursor-pointer">
+                            <input type="checkbox" class="hidden person-cb" data-gender="M" checked onchange="updatePersons()">
+                            <span class="person-badge inline-block px-2.5 py-1 text-xs font-bold rounded-full border transition-colors">Nathan</span>
+                        </label>
+                        <!-- Emy -->
+                        <label class="cursor-pointer">
+                            <input type="checkbox" class="hidden person-cb" data-gender="F" checked onchange="updatePersons()">
+                            <span class="person-badge inline-block px-2.5 py-1 text-xs font-bold rounded-full border transition-colors">Emy</span>
+                        </label>
+                        <!-- Alyssa -->
+                        <label class="cursor-pointer">
+                            <input type="checkbox" class="hidden person-cb" data-gender="F" checked onchange="updatePersons()">
+                            <span class="person-badge inline-block px-2.5 py-1 text-xs font-bold rounded-full border transition-colors">Alyssa</span>
+                        </label>
+                        <!-- Ronan -->
+                        <label class="cursor-pointer">
+                            <input type="checkbox" class="hidden person-cb" data-gender="M" checked onchange="updatePersons()">
+                            <span class="person-badge inline-block px-2.5 py-1 text-xs font-bold rounded-full border transition-colors">Ronan</span>
+                        </label>
+                        <!-- Maë -->
+                        <label class="cursor-pointer">
+                            <input type="checkbox" class="hidden person-cb" data-gender="F" checked onchange="updatePersons()">
+                            <span class="person-badge inline-block px-2.5 py-1 text-xs font-bold rounded-full border transition-colors">Maë</span>
+                        </label>
+                        <!-- BB -->
+                        <label class="cursor-pointer">
+                            <input type="checkbox" class="hidden person-cb" data-gender="M" checked onchange="updatePersons()">
+                            <span class="person-badge inline-block px-2.5 py-1 text-xs font-bold rounded-full border transition-colors">BB</span>
+                        </label>
+                        <!-- Corinne -->
+                        <label class="cursor-pointer">
+                            <input type="checkbox" class="hidden person-cb" data-gender="F" checked onchange="updatePersons()">
+                            <span class="person-badge inline-block px-2.5 py-1 text-xs font-bold rounded-full border transition-colors">Corinne</span>
+                        </label>
+                        <!-- Vincent -->
+                        <label class="cursor-pointer">
+                            <input type="checkbox" class="hidden person-cb" data-gender="M" checked onchange="updatePersons()">
+                            <span class="person-badge inline-block px-2.5 py-1 text-xs font-bold rounded-full border transition-colors">Vincent</span>
+                        </label>
+                        <!-- Florian -->
+                        <label class="cursor-pointer">
+                            <input type="checkbox" class="hidden person-cb" data-gender="M" checked onchange="updatePersons()">
+                            <span class="person-badge inline-block px-2.5 py-1 text-xs font-bold rounded-full border transition-colors">Florian</span>
+                        </label>
+                        <!-- Hélène -->
+                        <label class="cursor-pointer">
+                            <input type="checkbox" class="hidden person-cb" data-gender="F" checked onchange="updatePersons()">
+                            <span class="person-badge inline-block px-2.5 py-1 text-xs font-bold rounded-full border transition-colors">Hélène</span>
+                        </label>
                     </div>
                 </div>
 
                 <!-- Affichage du Prix -->
                 <div class="bg-teal-50 p-4 rounded-xl text-center">
-                    <span id="budget-title-label" class="text-xs font-semibold text-teal-800 uppercase tracking-wider block">Total pour 2 personnes</span>
+                    <span id="budget-title-label" class="text-xs font-semibold text-teal-800 uppercase tracking-wider block">Total pour 12 personnes</span>
                     <span id="total-budget" class="text-3xl font-extrabold text-teal-600">0 €</span>
                 </div>
 
@@ -384,22 +441,40 @@
         // Initialisation des icônes Lucide
         lucide.createIcons();
 
-        // Variable globale pour les passagers
-        let passengerCount = 2;
+        // Variable globale pour le nombre de participants
+        let passengerCount = 0;
 
-        // --- GESTION DES PARTICIPANTS ---
-        function updatePassengers(amount) {
-            passengerCount += amount;
-            if (passengerCount < 1) passengerCount = 1; // Minimum 1 personne
+        // --- GESTION DES PARTICIPANTS (COULEURS ET COMPTAGE) ---
+        function updatePersons() {
+            const checkboxes = document.querySelectorAll('.person-cb');
+            let count = 0;
             
-            // Mettre à jour l'affichage du compteur
-            document.getElementById('passenger-count').innerText = passengerCount;
+            checkboxes.forEach(cb => {
+                const badge = cb.nextElementSibling;
+                const gender = cb.getAttribute('data-gender');
+                
+                if (cb.checked) {
+                    count++;
+                    if (gender === 'M') {
+                        // Bleu clair pour les hommes
+                        badge.className = "person-badge inline-block px-2.5 py-1 text-xs font-bold rounded-full border transition-colors border-sky-300 text-sky-800 bg-sky-100";
+                    } else {
+                        // Orange pour les femmes
+                        badge.className = "person-badge inline-block px-2.5 py-1 text-xs font-bold rounded-full border transition-colors border-orange-300 text-orange-800 bg-orange-100";
+                    }
+                } else {
+                    // Gris pour les non-sélectionnés
+                    badge.className = "person-badge inline-block px-2.5 py-1 text-xs font-bold rounded-full border transition-colors border-slate-200 text-slate-400 bg-white hover:bg-slate-50";
+                }
+            });
+            
+            passengerCount = count;
             
             // Ajuster le texte du label de budget
-            const labelText = passengerCount > 1 ? `Total pour ${passengerCount} personnes` : `Total pour 1 personne`;
+            const labelText = passengerCount > 1 ? `Total pour ${passengerCount} personnes` : (passengerCount === 1 ? `Total pour 1 personne` : `Sélectionnez au moins 1 personne`);
             document.getElementById('budget-title-label').innerText = labelText;
             
-            // Recalculer
+            // Recalculer le budget
             calculateBudget();
         }
 
@@ -416,7 +491,7 @@
             
             // Calcul final lié au nombre de voyageurs
             let totalFinal = totalPerPerson * passengerCount;
-            document.getElementById('total-budget').innerText = totalFinal + " €";
+            document.getElementById('total-budget').innerText = totalFinal.toLocaleString('fr-FR') + " €";
         }
 
         function toggleAllDays(check) {
@@ -425,9 +500,9 @@
             calculateBudget();
         }
 
-        // Initialiser le calcul au démarrage (avec 2 personnes par défaut)
+        // Initialiser au démarrage
         window.onload = function() {
-            calculateBudget();
+            updatePersons(); // Gère les badges + déclenche le calcul du budget initial
         };
 
         // --- CODE CARTE INTERACTIVE LEAFLET ---
@@ -467,7 +542,7 @@
             map.flyTo([lat, lng], zoomLevel, { animate: true, duration: 1.2 });
         }
 
-        // --- GESTION DU FILTRAGE ---
+        // --- GESTION DU FILTRAGE DES JOURS ---
         function filterDays(week) {
             const cards = document.querySelectorAll('.day-card');
             const btnAll = document.getElementById('btn-all');
