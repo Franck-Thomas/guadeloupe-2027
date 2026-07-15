@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Voyage en Guadeloupe 2027 🌴</title>
+    <!-- Tailwind CSS pour le design -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons pour les icônes -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Leaflet CSS & JS pour la carte interactive -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        #map { height: 320px; width: 100%; border-radius: 1rem; z-index: 10; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-12">
+
+    <!-- Header / Hero Section -->
+    <header class="relative bg-gradient-to-r from-teal-500 to-cyan-600 text-white py-10 px-4 shadow-lg mb-6">
+        <div class="max-w-6xl mx-auto text-center">
+            <span class="bg-teal-400/30 text-teal-100 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full">13 au 27 Mars 2027</span>
+            <h1 class="text-3xl md:text-5xl font-extrabold mt-3 tracking-tight">Guadeloupe Island Trip 🌴</h1>
+            <p class="mt-2 text-teal-100 font-light">Deshaies (Basse-Terre) & Saint-François (Grande-Terre)</p>
+        </div>
+    </header>
+
+    <!-- Conteneur Principal Flexible (Carte & Budget + Timeline) -->
+    <main class="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- COLONNE GAUCHE : BUDGET + CARTE (Reste fixe au défilement) -->
+        <div class="lg:col-span-5 lg:sticky lg:top-6 h-fit space-y-6">
+            
+            <!-- Widget Budget Dynamique -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                <h2 class="text-lg font-bold text-slate-900 mb-1 flex items-center gap-2">
+                    <i data-lucide="wallet" class="text-teal-500 w-5 h-5"></i> Budget Estimé
+                </h2>
+                <p class="text-xs text-slate-400 mb-4">Ajustez le nombre de participants et sélectionnez vos journées.</p>
+                
+                <!-- Sélecteur de personnes -->
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+                    <span class="text-sm font-medium text-slate-700 flex items-center gap-2">
+                        <i data-lucide="users" class="w-4 h-4 text-slate-400"></i> Nombre de voyageurs :
+                    </span>
+                    <div class="flex items-center gap-3 bg-slate-100 p-1 rounded-lg">
+                        <button onclick="updatePassengers(-1)" class="w-8 h-8 rounded-md bg-white shadow-sm flex items-center justify-center font-bold text-slate-700 hover:bg-slate-50 transition-colors">-</button>
+                        <span id="passenger-count" class="text-sm font-bold w-6 text-center text-slate-800">2</span>
+                        <button onclick="updatePassengers(1)" class="w-8 h-8 rounded-md bg-white shadow-sm flex items-center justify-center font-bold text-slate-700 hover:bg-slate-50 transition-colors">+</button>
+                    </div>
+                </div>
+
+                <!-- Affichage du Prix -->
+                <div class="bg-teal-50 p-4 rounded-xl text-center">
+                    <span id="budget-title-label" class="text-xs font-semibold text-teal-800 uppercase tracking-wider block">Total pour 2 personnes</span>
+                    <span id="total-budget" class="text-3xl font-extrabold text-teal-600">0 €</span>
+                </div>
+
+                <div class="mt-3 flex justify-between text-xs text-slate-500 px-1">
+                    <span>Inclus : Activités + Restos midi</span>
+                    <button onclick="toggleAllDays(true)" class="text-teal-600 font-bold hover:underline">Tout cocher</button>
+                </div>
+            </div>
+
+            <!-- Carte Interactive -->
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                <h2 class="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
+                    <i data-lucide="map-pin" class="text-teal-500 w-5 h-5"></i> Carte de l'itinéraire
+                </h2>
+                <div id="map" class="shadow-inner border border-slate-100"></div>
+            </div>
+            
+            <!-- Filtres de Navigation rapides -->
+            <div class="flex bg-white p-1.5 rounded-xl shadow-sm border border-slate-100">
+                <button onclick="filterDays('all')" id="btn-all" class="flex-1 py-2 text-xs font-semibold rounded-lg transition-all bg-teal-500 text-white shadow-sm">
+                    Tout voir
+                </button>
+                <button onclick="filterDays('s1')" id="btn-s1" class="flex-1 py-2 text-xs font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-800">
+                    Semaine 1
+                </button>
+                <button onclick="filterDays('s2')" id="btn-s2" class="flex-1 py-2 text-xs font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-800">
+                    Semaine 2
+                </button>
+            </div>
+        </div>
+
+        <!-- COLONNE DROITE : TIMELINE JOUR PAR JOUR -->
+        <div class="lg:col-span-7">
+            <div class="relative border-l-2 border-teal-200 ml-4 md:ml-6 space-y-6">
+                
+                <!-- JOUR 1 -->
+                <div onclick="focusLocation(16.3069, -61.7941, 11)" class="day-card s1 relative pl-8 md:pl-10 group cursor-pointer">
+                    <div class="absolute -left-[11px] top-1 bg-teal-500 text-white rounded-full p-1 shadow-md group-hover:scale-110 transition-transform">
+                        <i data-lucide="plane-landing" class="w-4 h-4"></i>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-teal-300 transition-colors flex items-start gap-4">
+                        <input type="checkbox" checked data-price="20" onchange="calculateBudget()" class="day-checkbox mt-1.5 h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                        <div class="flex-1">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <span class="text-xs font-bold text-teal-600 tracking-wider uppercase">Jour 1 • Samedi 13 Mars</span>
+                                <span class="bg-slate-100 text-slate-700 text-xs px-2.5 py-0.5 rounded-full font-bold">20 € / pers</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-1">Arrivée & Premier coucher de soleil</h3>
+                            <p class="text-slate-600 leading-relaxed text-sm mb-2">Planteur et accueil face au lagon à la plage de <strong>Grande Anse</strong>.</p>
+                            <span class="text-xs text-slate-400">Détail : Cocktails + snacks locaux en bord de mer.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- JOUR 2 -->
+                <div onclick="focusLocation(16.3015, -61.7925, 13)" class="day-card s1 relative pl-8 md:pl-10 group cursor-pointer">
+                    <div class="absolute -left-[11px] top-1 bg-teal-500 text-white rounded-full p-1 shadow-md group-hover:scale-110 transition-transform">
+                        <i data-lucide="flower" class="w-4 h-4"></i>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-teal-300 transition-colors flex items-start gap-4">
+                        <input type="checkbox" checked data-price="55" onchange="calculateBudget()" class="day-checkbox mt-1.5 h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                        <div class="flex-1">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <span class="text-xs font-bold text-teal-600 tracking-wider uppercase">Jour 2 • Dimanche 14 Mars</span>
+                                <span class="bg-slate-100 text-slate-700 text-xs px-2.5 py-0.5 rounded-full font-bold">55 € / pers</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-1">Jardin Botanique & Plage de la Perle</h3>
+                            <p class="text-slate-600 leading-relaxed text-sm mb-2">Visite du superbe <strong>Jardin Botanique</strong> et farniente à La Perle.</p>
+                            <span class="text-xs text-slate-400">Détail : Entrée Jardin (16€) + Déjeuner créole de poissons (39€).</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- JOUR 3 -->
+                <div onclick="focusLocation(16.1627, -61.7797, 12)" class="day-card s1 relative pl-8 md:pl-10 group cursor-pointer">
+                    <div class="absolute -left-[11px] top-1 bg-teal-500 text-white rounded-full p-1 shadow-md group-hover:scale-110 transition-transform">
+                        <i data-lucide="droplet" class="w-4 h-4"></i>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-teal-300 transition-colors flex items-start gap-4">
+                        <input type="checkbox" checked data-price="80" onchange="calculateBudget()" class="day-checkbox mt-1.5 h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                        <div class="flex-1">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <span class="text-xs font-bold text-teal-600 tracking-wider uppercase">Jour 3 • Lundi 15 Mars</span>
+                                <span class="bg-slate-100 text-slate-700 text-xs px-2.5 py-0.5 rounded-full font-bold">80 € / pers</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-1">Réserve Cousteau & Cascade</h3>
+                            <p class="text-slate-600 leading-relaxed text-sm mb-2">Sortie snorkeling ou bateau à fond de verre aux Ilets Pigeon, suivi de la Route de la Traversée.</p>
+                            <span class="text-xs text-slate-400">Détail : Activité nautique Réserve (50€) + Déjeuner à Malendure (30€).</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- JOUR 4 -->
+                <div onclick="focusLocation(16.3324, -61.6983, 12)" class="day-card s1 relative pl-8 md:pl-10 group cursor-pointer">
+                    <div class="absolute -left-[11px] top-1 bg-teal-500 text-white rounded-full p-1 shadow-md group-hover:scale-110 transition-transform">
+                        <i data-lucide="ship" class="w-4 h-4"></i>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-teal-300 transition-colors flex items-start gap-4">
+                        <input type="checkbox" checked data-price="85" onchange="calculateBudget()" class="day-checkbox mt-1.5 h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                        <div class="flex-1">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <span class="text-xs font-bold text-teal-600 tracking-wider uppercase">Jour 4 • Mardi 16 Mars</span>
+                                <span class="bg-slate-100 text-slate-700 text-xs px-2.5 py-0.5 rounded-full font-bold">85 € / pers</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-1">Grand Cul-de-Sac Marin & Rhum</h3>
+                            <p class="text-slate-600 leading-relaxed text-sm mb-2">Bateau dans la mangrove (Sainte-Rose) et dégustation à la distillerie Reimonenq.</p>
+                            <span class="text-xs text-slate-400">Détail : Excursion lagon (45€) + Entrée Musée (8€) + Déjeuner (32€).</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- JOUR 5 -->
+                <div onclick="focusLocation(16.0415, -61.6644, 12)" class="day-card s1 relative pl-8 md:pl-10 group cursor-pointer">
+                    <div class="absolute -left-[11px] top-1 bg-teal-500 text-white rounded-full p-1 shadow-md group-hover:scale-110 transition-transform">
+                        <i data-lucide="footprints" class="w-4 h-4"></i>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-teal-300 transition-colors flex items-start gap-4">
+                        <input type="checkbox" checked data-price="35" onchange="calculateBudget()" class="day-checkbox mt-1.5 h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                        <div class="flex-1">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <span class="text-xs font-bold text-teal-600 tracking-wider uppercase">Jour 5 • Mercredi 17 Mars</span>
+                                <span class="bg-slate-100 text-slate-700 text-xs px-2.5 py-0.5 rounded-full font-bold">35 € / pers</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-1">Deuxième Chute du Carbet</h3>
+                            <p class="text-slate-600 leading-relaxed text-sm mb-2">Randonnée au cœur du Parc National de la Basse-Terre.</p>
+                            <span class="text-xs text-slate-400">Détail : Accès parc/parking (5€) + Repas créole authentique (30€).</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- JOUR 6 -->
+                <div onclick="focusLocation(15.8675, -61.5878, 12)" class="day-card s1 relative pl-8 md:pl-10 group cursor-pointer">
+                    <div class="absolute -left-[11px] top-1 bg-teal-500 text-white rounded-full p-1 shadow-md group-hover:scale-110 transition-transform">
+                        <i data-lucide="palmtree" class="w-4 h-4"></i>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-teal-300 transition-colors flex items-start gap-4">
+                        <input type="checkbox" checked data-price="95" onchange="calculateBudget()" class="day-checkbox mt-1.5 h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                        <div class="flex-1">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <span class="text-xs font-bold text-teal-600 tracking-wider uppercase">Jour 6 • Jeudi 18 Mars</span>
+                                <span class="bg-slate-100 text-slate-700 text-xs px-2.5 py-0.5 rounded-full font-bold">95 € / pers</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-1">Excursion aux Saintes (Terre-de-Haut)</h3>
+                            <p class="text-slate-600 leading-relaxed text-sm mb-2">Ferry depuis Trois-Rivières, scooter partagé, Fort Napoléon et plage du Pain de Sucre.</p>
+                            <span class="text-xs text-slate-400">Détail : Ferry A/R (25€) + Scooter partagé (17.5€) + Fort (5€) + Resto & gâteaux (47.5€).</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- JOUR 7 -->
+                <div onclick="focusLocation(16.3045, -61.7946, 14)" class="day-card s1 relative pl-8 md:pl-10 group cursor-pointer">
+                    <div class="absolute -left-[11px] top-1 bg-teal-500 text-white rounded-full p-1 shadow-md group-hover:scale-110 transition-transform">
+                        <i data-lucide="tv" class="w-4 h-4"></i>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-teal-300 transition-colors flex items-start gap-4">
+                        <input type="checkbox" checked data-price="30" onchange="calculateBudget()" class="day-checkbox mt-1.5 h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                        <div class="flex-1">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <span class="text-xs font-bold text-teal-600 tracking-wider uppercase">Jour 7 • Vendredi 19 Mars</span>
+                                <span class="bg-slate-100 text-slate-700 text-xs px-2.5 py-0.5 rounded-full font-bold">30 € / pers</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-1">Bourg de Deshaies & Sentier Côtier</h3>
+                            <p class="text-slate-600 leading-relaxed text-sm mb-2">Marche gratuite le long de la côte et pause déjeuner dans un lolo traditionnel.</p>
+                            <span class="text-xs text-slate-400">Détail : Déjeuner traditionnel local (25€) + Sorbet coco (5€).</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- JOUR 8 -->
+                <div onclick="focusLocation(16.2522, -61.2741, 11)" class="day-card s2 relative pl-8 md:pl-10 group cursor-pointer">
+                    <div class="absolute -left-[11px] top-1 bg-cyan-500 text-white rounded-full p-1 shadow-md group-hover:scale-110 transition-transform">
+                        <i data-lucide="arrow-right-left" class="w-4 h-4"></i>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-teal-300 transition-colors flex items-start gap-4">
+                        <input type="checkbox" checked data-price="40" onchange="calculateBudget()" class="day-checkbox mt-1.5 h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                        <div class="flex-1">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <span class="text-xs font-bold text-cyan-600 tracking-wider uppercase">Jour 8 • Samedi 20 Mars</span>
+                                <span class="bg-slate-100 text-slate-700 text-xs px-2.5 py-0.5 rounded-full font-bold">40 € / pers</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-1">Transit vers Saint-François</h3>
+                            <p class="text-slate-600 leading-relaxed text-sm mb-2">Route vers la Grande-Terre, halte au marché de Pointe-à-Pitre et dîner Marina.</p>
+                            <span class="text-xs text-slate-400">Détail : Épices/Snack marché (10€) + Repas sur la Marina (30€).</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- JOUR 9 -->
+                <div onclick="focusLocation(16.2441, -61.1812, 13)" class="day-card s2 relative pl-8 md:pl-10 group cursor-pointer">
+                    <div class="absolute -left-[11px] top-1 bg-cyan-500 text-white rounded-full p-1 shadow-md group-hover:scale-110 transition-transform">
+                        <i data-lucide="compass" class="w-4 h-4"></i>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-teal-300 transition-colors flex items-start gap-4">
+                        <input type="checkbox" checked data-price="35" onchange="calculateBudget()" class="day-checkbox mt-1.5 h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                        <div class="flex-1">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <span class="text-xs font-bold text-cyan-600 tracking-wider uppercase">Jour 9 • Dimanche 21 Mars</span>
+                                <span class="bg-slate-100 text-slate-700 text-xs px-2.5 py-0.5 rounded-full font-bold">35 € / pers</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-1">La majestueuse Pointe des Châteaux</h3>
+                            <p class="text-slate-600 leading-relaxed text-sm mb-2">Découverte de l'extrême Est sauvage et déjeuner poisson à l'Anse à la Gourde.</p>
+                            <span class="text-xs text-slate-400">Détail : Sorbets traditionnels (4€) + Resto créole poissons frais (31€).</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- JOUR 10 -->
+                <div onclick="focusLocation(16.1703, -61.1167, 12)" class="day-card s2 relative pl-8 md:pl-10 group cursor-pointer">
+                    <div class="absolute -left-[11px] top-1 bg-cyan-500 text-white rounded-full p-1 shadow-md group-hover:scale-110 transition-transform">
+                        <i data-lucide="anchor" class="w-4 h-4"></i>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-teal-300 transition-colors flex items-start gap-4">
+                        <input type="checkbox" checked data-price="110" onchange="calculateBudget()" class="day-checkbox mt-1.5 h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                        <div class="flex-1">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <span class="text-xs font-bold text-cyan-600 tracking-wider uppercase">Jour 10 • Lundi 22 Mars</span>
+                                <span class="bg-slate-100 text-slate-700 text-xs px-2.5 py-0.5 rounded-full font-bold">110 € / pers</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-1">Réserve Naturelle de Petite-Terre</h3>
+                            <p class="text-slate-600 leading-relaxed text-sm mb-2">Journée complète en catamaran. Snorkeling grandiose (requins, raies, iguanes).</p>
+                            <span class="text-xs text-slate-400">Détail : Forfait excursion tout compris avec barbecue sur la plage (110€).</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- JOUR 11 -->
+                <div onclick="focusLocation(16.2223, -61.3812, 12)" class="day-card s2 relative pl-8 md:pl-10 group cursor-pointer">
+                    <div class="absolute -left-[11px] top-1 bg-cyan-500 text-white rounded-full p-1 shadow-md group-hover:scale-110 transition-transform">
+                        <i data-lucide="umbrella" class="w-4 h-4"></i>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-teal-300 transition-colors flex items-start gap-4">
+                        <input type="checkbox" checked data-price="45" onchange="calculateBudget()" class="day-checkbox mt-1.5 h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                        <div class="flex-1">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <span class="text-xs font-bold text-cyan-600 tracking-wider uppercase">Jour 11 • Mardi 23 Mars</span>
+                                <span class="bg-slate-100 text-slate-700 text-xs px-2.5 py-0.5 rounded-full font-bold">45 € / pers</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-1">Plages de Sainte-Anne & Marché Nocturne</h3>
+                            <p class="text-slate-600 leading-relaxed text-sm mb-2">Lagon de la Caravelle et de Bois-Jolan. Le soir, marché artisanal de la Rotonde.</p>
+                            <span class="text-xs text-slate-400">Détail : Déjeuner Plage (25€) + Achats souvenirs du marché (20€).</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- JOUR 12 -->
+                <div onclick="focusLocation(16.5015, -61.4793, 11)" class="day-card s2 relative pl-8 md:pl-10 group cursor-pointer">
+                    <div class="absolute -left-[11px] top-1 bg-cyan-500 text-white rounded-full p-1 shadow-md group-hover:scale-110 transition-transform">
+                        <i data-lucide="map" class="w-4 h-4"></i>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-teal-300 transition-colors flex items-start gap-4">
+                        <input type="checkbox" checked data-price="38" onchange="calculateBudget()" class="day-checkbox mt-1.5 h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                        <div class="flex-1">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <span class="text-xs font-bold text-cyan-600 tracking-wider uppercase">Jour 12 • Mercredi 24 Mars</span>
+                                <span class="bg-slate-100 text-slate-700 text-xs px-2.5 py-0.5 rounded-full font-bold">38 € / pers</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-1">Pointe de la Grande Vigie & Port-Louis</h3>
+                            <p class="text-slate-600 leading-relaxed text-sm mb-2">Falaises calcaires spectaculaires du nord et baignade à l'Anse du Souffleur.</p>
+                            <span class="text-xs text-slate-400">Détail : Déjeuner poisson local (33€) + Boisson/glace (5€).</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- JOUR 13 -->
+                <div onclick="focusLocation(15.9419, -61.2651, 11)" class="day-card s2 relative pl-8 md:pl-10 group cursor-pointer">
+                    <div class="absolute -left-[11px] top-1 bg-cyan-500 text-white rounded-full p-1 shadow-md group-hover:scale-110 transition-transform">
+                        <i data-lucide="ship" class="w-4 h-4"></i>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-teal-300 transition-colors flex items-start gap-4">
+                        <input type="checkbox" checked data-price="90" onchange="calculateBudget()" class="day-checkbox mt-1.5 h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                        <div class="flex-1">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <span class="text-xs font-bold text-cyan-600 tracking-wider uppercase">Jour 13 • Jeudi 25 Mars</span>
+                                <span class="bg-slate-100 text-slate-700 text-xs px-2.5 py-0.5 rounded-full font-bold">90 € / pers</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-1">La Désirade ou Marie-Galante</h3>
+                            <p class="text-slate-600 leading-relaxed text-sm mb-2">Ferry depuis Saint-François vers l'île de votre choix et repas typique à terre.</p>
+                            <span class="text-xs text-slate-400">Détail : Ticket ferry A/R (40€) + Déjeuner créole local (50€).</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- JOUR 14 -->
+                <div onclick="focusLocation(16.2522, -61.2741, 13)" class="day-card s2 relative pl-8 md:pl-10 group cursor-pointer">
+                    <div class="absolute -left-[11px] top-1 bg-cyan-500 text-white rounded-full p-1 shadow-md group-hover:scale-110 transition-transform">
+                        <i data-lucide="sun" class="w-4 h-4"></i>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-teal-300 transition-colors flex items-start gap-4">
+                        <input type="checkbox" checked data-price="130" onchange="calculateBudget()" class="day-checkbox mt-1.5 h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                        <div class="flex-1">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <span class="text-xs font-bold text-cyan-600 tracking-wider uppercase">Jour 14 • Vendredi 26 Mars</span>
+                                <span class="bg-slate-100 text-slate-700 text-xs px-2.5 py-0.5 rounded-full font-bold">130 € / pers</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-1">Détente, ULM ou Golf</h3>
+                            <p class="text-slate-600 leading-relaxed text-sm mb-2">Options activités au choix (ULM, Golf 18 trous) ou shopping de fin de séjour.</p>
+                            <span class="text-xs text-slate-400">Détail : Activité survol lagon (90€) + Dîner festif Marina (40€).</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- JOUR 15 -->
+                <div onclick="focusLocation(16.2615, -61.5317, 11)" class="day-card s2 relative pl-8 md:pl-10 group cursor-pointer">
+                    <div class="absolute -left-[11px] top-1 bg-slate-600 text-white rounded-full p-1 shadow-md group-hover:scale-110 transition-transform">
+                        <i data-lucide="plane-takeoff" class="w-4 h-4"></i>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-teal-300 transition-colors flex items-start gap-4">
+                        <input type="checkbox" checked data-price="25" onchange="calculateBudget()" class="day-checkbox mt-1.5 h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                        <div class="flex-1">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <span class="text-xs font-bold text-slate-500 tracking-wider uppercase">Jour 15 • Samedi 27 Mars</span>
+                                <span class="bg-slate-100 text-slate-700 text-xs px-2.5 py-0.5 rounded-full font-bold">25 € / pers</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-1">Derniers achats & Vol retour</h3>
+                            <p class="text-slate-600 leading-relaxed text-sm mb-2">Fruits exotiques, rhums arrangés et cadeaux au marché local avant l'aéroport.</p>
+                            <span class="text-xs text-slate-400">Détail : Souvenirs gourmands de dernière minute (25€).</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Initialisation des icônes Lucide
+        lucide.createIcons();
+
+        // Variable globale pour les passagers
+        let passengerCount = 2;
+
+        // --- GESTION DES PARTICIPANTS ---
+        function updatePassengers(amount) {
+            passengerCount += amount;
+            if (passengerCount < 1) passengerCount = 1; // Minimum 1 personne
+            
+            // Mettre à jour l'affichage du compteur
+            document.getElementById('passenger-count').innerText = passengerCount;
+            
+            // Ajuster le texte du label de budget
+            const labelText = passengerCount > 1 ? `Total pour ${passengerCount} personnes` : `Total pour 1 personne`;
+            document.getElementById('budget-title-label').innerText = labelText;
+            
+            // Recalculer
+            calculateBudget();
+        }
+
+        // --- CALCUL DU BUDGET DYNAMIQUE ---
+        function calculateBudget() {
+            let totalPerPerson = 0;
+            const checkboxes = document.querySelectorAll('.day-checkbox');
+            
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    totalPerPerson += parseInt(cb.getAttribute('data-price'));
+                }
+            });
+            
+            // Calcul final lié au nombre de voyageurs
+            let totalFinal = totalPerPerson * passengerCount;
+            document.getElementById('total-budget').innerText = totalFinal + " €";
+        }
+
+        function toggleAllDays(check) {
+            const checkboxes = document.querySelectorAll('.day-checkbox');
+            checkboxes.forEach(cb => cb.checked = check);
+            calculateBudget();
+        }
+
+        // Initialiser le calcul au démarrage (avec 2 personnes par défaut)
+        window.onload = function() {
+            calculateBudget();
+        };
+
+        // --- CODE CARTE INTERACTIVE LEAFLET ---
+        const guadeloupeCenter = [16.22, -61.55];
+        const map = L.map('map').setView(guadeloupeCenter, 10);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        const locations = [
+            { name: "Semaine 1 : Logement Deshaies & Grande Anse", coords: [16.3211, -61.7972], week: "s1" },
+            { name: "Jardin Botanique de Deshaies", coords: [16.3015, -61.7925], week: "s1" },
+            { name: "Réserve Cousteau / Malendure", coords: [16.1627, -61.7797], week: "s1" },
+            { name: "Grand Cul-de-Sac Marin (Sainte-Rose)", coords: [16.3324, -61.6983], week: "s1" },
+            { name: "2ème Chute du Carbet", coords: [16.0415, -61.6644], week: "s1" },
+            { name: "Départ Les Saintes (Trois-Rivières)", coords: [15.9265, -61.6444], week: "s1" },
+            { name: "Semaine 2 : Logement & Raisins Clairs", coords: [16.2522, -61.2741], week: "s2" },
+            { name: "La Pointe des Châteaux", coords: [16.2441, -61.1812], week: "s2" },
+            { name: "Réserve de Petite-Terre", coords: [16.1703, -61.1167], week: "s2" },
+            { name: "Plage de la Caravelle (Sainte-Anne)", coords: [16.2223, -61.3812], week: "s2" },
+            { name: "Pointe de la Grande Vigie (Nord)", coords: [16.5135, -61.4793], week: "s2" },
+            { name: "Marie-Galante (Ferry)", coords: [15.9419, -61.2651], week: "s2" }
+        ];
+
+        const markerGroup = [];
+
+        locations.forEach(loc => {
+            const marker = L.marker(loc.coords)
+                .bindPopup(`<b>${loc.name}</b>`)
+                .addTo(map);
+            marker.week = loc.week;
+            markerGroup.push(marker);
+        });
+
+        function focusLocation(lat, lng, zoomLevel) {
+            map.flyTo([lat, lng], zoomLevel, { animate: true, duration: 1.2 });
+        }
+
+        // --- GESTION DU FILTRAGE ---
+        function filterDays(week) {
+            const cards = document.querySelectorAll('.day-card');
+            const btnAll = document.getElementById('btn-all');
+            const btnS1 = document.getElementById('btn-s1');
+            const btnS2 = document.getElementById('btn-s2');
+
+            [btnAll, btnS1, btnS2].forEach(btn => {
+                btn.classList.remove('bg-teal-500', 'text-white', 'shadow-sm');
+                btn.classList.add('text-slate-500', 'hover:text-slate-800');
+            });
+
+            if (week === 'all') {
+                cards.forEach(card => card.classList.remove('hidden'));
+                btnAll.classList.add('bg-teal-500', 'text-white', 'shadow-sm');
+                btnAll.classList.remove('text-slate-500');
+                map.flyTo(guadeloupeCenter, 10);
+                markerGroup.forEach(m => map.addLayer(m));
+            } else if (week === 's1') {
+                cards.forEach(card => {
+                    if (card.classList.contains('s1')) card.classList.remove('hidden');
+                    else card.classList.add('hidden');
+                });
+                btnS1.classList.add('bg-teal-500', 'text-white', 'shadow-sm');
+                btnS1.classList.remove('text-slate-500');
+                map.flyTo([16.18, -61.72], 11);
+                markerGroup.forEach(m => {
+                    if(m.week === 's1') map.addLayer(m);
+                    else map.removeLayer(m);
+                });
+            } else if (week === 's2') {
+                cards.forEach(card => {
+                    if (card.classList.contains('s2')) card.classList.remove('hidden');
+                    else card.classList.add('hidden');
+                });
+                btnS2.classList.add('bg-teal-500', 'text-white', 'shadow-sm');
+                btnS2.classList.remove('text-slate-500');
+                map.flyTo([16.28, -61.35], 11);
+                markerGroup.forEach(m => {
+                    if(m.week === 's2') map.addLayer(m);
+                    else map.removeLayer(m);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
